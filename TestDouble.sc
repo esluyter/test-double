@@ -1,20 +1,22 @@
-SuperPoll : MultiOutUGen {
+SuperPoll : UGen {
     *ar { arg trig, value, label, trigid = -1;
-        ^this.multiNew('audio', trig, value, label, trigid);
+        this.multiNew('audio', trig, value, label, trigid);
+        ^value;
     }
     *kr { arg trig, value, label, trigid = -1;
-        ^this.multiNew('control', trig, value, label, trigid);
+        this.multiNew('control', trig, value, label, trigid);
+        ^value;
     }
     *new1 { arg rate, trig, value, label, trigid;
         var valueArr = value.asPair.asArray;
         label = label ?? { "%".format(value.class) };
         label = label.asString.collectAs(_.ascii, Array);
         if (trig.isNumber) { trig = Impulse.multiNew(rate, trig, 0) };
-        ^SuperPair(*super.new.rate_(rate).addToSynth.init([trig] ++ valueArr ++ [trigid, label.size] ++ label));
+        ^super.new.rate_(rate).addToSynth.init([trig] ++ valueArr ++ [trigid, label.size] ++ label);
     }
     init { arg theInputs;
         inputs = theInputs;
-        ^this.initOutputs(2, rate);
+        //^this.initOutputs(2, rate);
     }
 }
 
