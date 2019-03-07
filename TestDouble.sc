@@ -33,6 +33,15 @@ SuperPair {
         ^super.newCopyArgs(msd, lsd);
     }
 
+    asFloat {
+        if (this.isUGen) {
+            "Cannot convert UGen to Float".postln;
+            ^nil;
+        } {
+            ^(msd + lsd);
+        };
+    }
+
     asPair {
         ^this;
     }
@@ -42,11 +51,37 @@ SuperPair {
     }
 
     asBig {
-        ^this.asArray;
+        ^this;
+    }
+
+    asOSCArgEmbeddedArray { | array|
+		array = array.add($[);
+		this.asArray.do{ | e | array = e.asOSCArgEmbeddedArray(array) };
+		^array.add($])
+    }
+
+    isUGen {
+        if (msd.isUGen or: lsd.isUGen) {
+            ^true;
+        };
+        ^false;
     }
 
     poll { arg trig = 10, label, trigid = -1;
         ^SuperPoll.ar(trig, this, label, trigid);
+    }
+
+    superPoll { arg trig = 10, label, trigid = -1;
+        ^this.poll(trig, label, trigid);
+    }
+
+    + { arg something;
+        if (this.isUGen or: something.isUGen) {
+            "UGen SuperPair addition not yet implemented".postln;
+            ^this;
+        } {
+            ^SuperPair.fromDouble(this.asFloat + something.asFloat);
+        }
     }
 }
 
@@ -57,7 +92,7 @@ SuperPair {
     }
 
     asBig {
-        ^this.asPair.asArray;
+        ^this.asPair;
     }
 }
 
@@ -65,10 +100,21 @@ SuperPair {
     asPair {
         ^SuperPair(this, 0.0)
     }
+
+    superPoll { arg trig = 10, label, trigid = -1;
+        ^SuperPoll.ar(trig, this, label, trigid);
+    }
 }
 
 + Symbol {
     krBig { arg value = 0.0;
         ^SuperPair(*this.kr(value.asPair))
+    }
+}
+
++ Array {
+    superPoll { arg trig = 10, label, trigid = -1;
+        if (label.isNil) { label = this.collect{ |thing, index| "Array [%] (%)".format(index, thing.class) }};
+        ^SuperPoll.ar(trig, this, label, trigid);
     }
 }
